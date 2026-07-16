@@ -1,7 +1,7 @@
 ---
 name: GrantFox wave task
 about: A scoped, contributor-ready task for Cavos Stellar by Example
-title: "[Wave N] "
+title: "CSBE-XX — "
 labels: enhancement, help wanted
 assignees: ''
 ---
@@ -9,6 +9,10 @@ assignees: ''
 ## Goal
 
 <!-- One outcome a contributor can demonstrate after this issue is merged. -->
+
+## Tracking ID
+
+<!-- Replace XX in the title with the next unused CSBE consecutive number. -->
 
 ## Why this matters now
 
