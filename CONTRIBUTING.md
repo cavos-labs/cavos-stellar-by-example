@@ -62,6 +62,10 @@ Before you open a pull request, make sure:
 - [ ] You updated the relevant README or app notes if behavior or setup changed.
 - [ ] No secrets, credentials, or generated junk are committed.
 - [ ] The PR is scoped to a single issue and links to it.
+- [ ] You completed every required section of the pull-request template. This
+      includes Cavos integration feedback (or an explicit, justified `N/A`) and
+      evidence for every acceptance criterion. PRs without those sections are
+      not ready for review.
 
 ## Local setup
 
