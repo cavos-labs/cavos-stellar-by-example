@@ -30,6 +30,29 @@ npm run dev
 
 Then open the URL printed in your terminal (usually `http://localhost:3000`).
 
+By default the app runs in **demo mode** with mock data — no account needed.
+To configure it with your own Cavos App ID, see [Get a Cavos App
+ID](#get-a-cavos-app-id) below.
+
+## Get a Cavos App ID
+
+Every Cavos-backed example in this repo needs a Cavos App ID to run against
+your own app instead of mock data. Get one before writing product code:
+
+1. Register at [cavos.xyz/register](https://cavos.xyz/register).
+2. Create an application in the Cavos dashboard.
+3. Copy that application's App ID.
+4. In the app directory (e.g. `trustless-escrow-freelance-app`), create
+   `.env.local` from `.env.example` and set `NEXT_PUBLIC_CAVOS_APP_ID` to the
+   App ID you copied.
+
+Each app's own README documents which network it targets and how demo mode
+differs from an App-ID-configured run — check there for app-specific detail.
+
+**Never commit a seed phrase, private key, API secret, or your `.env.local`
+file.** `.env.local` is git-ignored; only `.env.example` (placeholders only)
+belongs in the repo.
+
 ## The stack
 
 - **[Cavos](https://cavos.xyz/)** — embedded, self-custodial smart accounts from

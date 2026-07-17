@@ -1,4 +1,5 @@
 import { links } from "@/lib/links";
+import { CavosSetupBanner } from "./CavosSetupBanner";
 
 function Arrow({ className = "" }: { className?: string }) {
   return (
@@ -45,6 +46,10 @@ export function Hero() {
           <span className="rounded-full border border-brand/20 bg-brand-soft px-2.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-brand">
             Mock-up
           </span>
+        </div>
+
+        <div className="animate-fade-up mt-5" style={{ animationDelay: "30ms" }}>
+          <CavosSetupBanner />
         </div>
 
         {/* Brand is the hero-level signal */}
