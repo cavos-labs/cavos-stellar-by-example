@@ -15,15 +15,17 @@ the starting point for their own product.
 ## Status
 
 **This is a mock-up — a landing page plus a navigable app shell running on
-deterministic demo data.** There is no live auth, no Cavos SDK wiring, and no
-Trustless Work API calls yet. The dashboard, project detail view, and
-new-project flow render typed fixture data so the use case is clear to
+deterministic demo data.** Cavos session wiring with
+[@cavos/kit](https://www.npmjs.com/package/@cavos/kit) (`chain: "stellar"`) is
+live—users can connect a real Stellar self-custodial wallet on testnet. There
+is no Trustless Work API integration yet. The dashboard, project detail view,
+and new-project flow render typed fixture data so the use case is clear to
 contributors and visitors, and so UI, test, and integration work can advance in
 parallel.
 
 The intended end state (open for contributions):
 
-- Complete Cavos social login + smart-account onboarding
+- Complete Cavos social login + smart-account onboarding ✅
 - Complete Trustless Work escrow create / fund / approve / release flows
 - Settlement on Stellar stablecoins
 - Contract creation and related freelance marketplace surfaces
@@ -117,13 +119,17 @@ which contains placeholders and no real values, belongs in version control.
   including the milestone ledger and wallet card in the product preview. No
   network calls, no Cavos account required.
 - **Configured mode** (`NEXT_PUBLIC_CAVOS_APP_ID` set): the setup banner
-  confirms your App ID (masked) and target network are recognized. The
-  product preview still renders mock data — this app has no live Cavos SDK
-  wiring yet (see [Status](#status)) — but configured mode is the state later
-  Cavos integration work builds on.
+  confirms your App ID (masked), target network, and the live Cavos session
+  are ready to connect (see [Status](#status)). The project-detail wallet card
+  shows a "Sign in with Cavos" button backed by `@cavos/kit` on Stellar
+  testnet, swapping mock data for real wallet state after connect.
+- The Cavos session is derived through `lib/cavos/session.ts` (a 4-state
+  discriminated union: disconnected → connecting → connected → error) and
+  used in `components/app/EscrowContractCard.tsx` and
+  `components/app/AppHeader.tsx`.
 - The setup banner is the app's single in-app source of truth for which mode
   you're in; it's rendered by `components/CavosSetupBanner.tsx` from
-  `lib/cavos.ts`, so there's no silent failure or raw SDK error if
+  `lib/cavos/config.ts`, so there's no silent failure or raw SDK error if
   `NEXT_PUBLIC_CAVOS_APP_ID` is missing or blank.
 
 ## Manual test flow (Stellar connect with @cavos/kit)
@@ -232,7 +238,11 @@ components/
     NewProjectForm.tsx    Draft builder with live preview (client)
 lib/
   links.ts          Shared external links
-  cavos.ts          Cavos App ID / network config resolver (unit tested)
+  cavos/
+    config.ts         Cavos App ID / network config resolver (unit tested)
+    session.ts        useCavosSession() — 4-state session hook (unit tested)
+    provider.tsx      <CavosProvider> wrapper
+    index.ts          Barrel re-exports
   gateway.ts        Async data gateway over the fixtures (swap point for real APIs)
   domain/
     types.ts          Project, Milestone, Party, EscrowStatus, actions

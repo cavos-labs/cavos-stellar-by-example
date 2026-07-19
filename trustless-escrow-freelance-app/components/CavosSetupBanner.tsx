@@ -43,7 +43,7 @@ export function CavosSetupBanner() {
           <span className="font-mono text-[12.5px] text-ink/60">
             ({maskAppId(config.appId)} · {config.network})
           </span>
-          — session connected on Stellar testnet.
+          — ready to connect on Stellar testnet.
         </p>
       </div>
     );
