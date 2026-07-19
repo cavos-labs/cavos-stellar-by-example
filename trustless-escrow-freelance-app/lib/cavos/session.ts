@@ -28,6 +28,48 @@ export interface UseCavosSessionReturn {
 }
 
 /**
+ * Raw inputs that the state-derivation logic consumes.
+ *
+ * These mirror the relevant fields from `@cavos/kit`'s `useCavos()` return
+ * value so the pure function can be unit-tested without a React renderer.
+ */
+export interface DeriveSessionInput {
+  authError: string | null;
+  isAuthenticated: boolean;
+  address: string | null;
+  email: string | null | undefined;
+  isLoading: boolean;
+}
+
+/**
+ * Pure state-derivation function.
+ *
+ * Maps raw SDK inputs to one of the four `CavosSessionState` variants.
+ * Priority order (checked in sequence):
+ * 1. `authError` → `"error"`
+ * 2. `isAuthenticated && address` → `"connected"`
+ * 3. `isLoading` → `"connecting"`
+ * 4. otherwise → `"disconnected"`
+ *
+ * Extracted so the derivation logic can be unit-tested without a React
+ * renderer or mocking the Cavos SDK.
+ */
+export function deriveSessionState(input: DeriveSessionInput): CavosSessionState {
+  const { authError, isAuthenticated, address, email, isLoading } = input;
+
+  if (authError) {
+    return { status: "error", error: authError };
+  }
+  if (isAuthenticated && address) {
+    return { status: "connected", address, email: email ?? undefined };
+  }
+  if (isLoading) {
+    return { status: "connecting" };
+  }
+  return { status: "disconnected" };
+}
+
+/**
  * Thin wrapper around `@cavos/kit`'s `useCavos()` that maps the raw
  * authentication surface into the four-state `CavosSessionState`.
  *
@@ -51,17 +93,13 @@ export function useCavosSession(): UseCavosSessionReturn {
     clearAuthError,
   } = useCavos();
 
-  let session: CavosSessionState;
-
-  if (authError) {
-    session = { status: "error", error: authError };
-  } else if (isAuthenticated && address) {
-    session = { status: "connected", address, email: user?.email };
-  } else if (isLoading) {
-    session = { status: "connecting" };
-  } else {
-    session = { status: "disconnected" };
-  }
+  const session = deriveSessionState({
+    authError,
+    isAuthenticated,
+    address,
+    email: user?.email,
+    isLoading,
+  });
 
   return {
     session,
