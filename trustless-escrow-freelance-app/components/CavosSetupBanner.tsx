@@ -43,8 +43,7 @@ export function CavosSetupBanner() {
           <span className="font-mono text-[12.5px] text-ink/60">
             ({maskAppId(config.appId)} · {config.network})
           </span>
-          — this preview still shows mock data; live Cavos wiring is a
-          follow-up.
+          — session connected on Stellar testnet.
         </p>
       </div>
     );

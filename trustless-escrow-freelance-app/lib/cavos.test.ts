@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_CAVOS_NETWORK, maskAppId, resolveCavosConfig } from "./cavos";
+import { DEFAULT_CAVOS_NETWORK, maskAppId, resolveCavosConfig } from "./cavos/config";
 
 describe("resolveCavosConfig", () => {
   it("falls back to demo mode when no App ID is set", () => {
