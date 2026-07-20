@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Wordmark } from "@/components/Wordmark";
+import { useCavosSession } from "@/lib/cavos/session";
+import { resolveCavosConfig } from "@/lib/cavos";
 
 const NAV = [
   { label: "Dashboard", href: "/dashboard" },
@@ -18,6 +20,43 @@ function isActive(pathname: string, href: string): boolean {
     );
   }
   return pathname === href;
+}
+
+function StatusBadge() {
+  const { session } = useCavosSession();
+  const cfg = resolveCavosConfig();
+
+  if (session.status === "connected") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-signal/20 bg-signal/5 px-2.5 py-0.5 font-mono text-[11px] text-signal">
+        <span className="h-1.5 w-1.5 rounded-full bg-signal" />
+        {session.address}
+      </span>
+    );
+  }
+
+  if (session.status === "connecting") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-brand/20 bg-brand-soft px-2.5 py-0.5 font-mono text-[11px] text-brand">
+        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" />
+        Connecting…
+      </span>
+    );
+  }
+
+  if (cfg.mode === "demo") {
+    return (
+      <span className="rounded-full border border-brand/20 bg-brand-soft px-2.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-brand">
+        Mock data
+      </span>
+    );
+  }
+
+  return (
+    <span className="rounded-full border border-ink/10 bg-white px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-ink/40">
+      Disconnected
+    </span>
+  );
 }
 
 export function AppHeader() {
@@ -47,9 +86,7 @@ export function AppHeader() {
           </nav>
         </div>
 
-        <span className="rounded-full border border-brand/20 bg-brand-soft px-2.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-brand">
-          Mock data
-        </span>
+        <StatusBadge />
       </div>
     </header>
   );

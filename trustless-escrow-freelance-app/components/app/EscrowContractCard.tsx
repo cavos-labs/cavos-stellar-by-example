@@ -1,6 +1,10 @@
+"use client";
+
 import type { Milestone, MilestoneState, Project } from "@/lib/domain/types";
 import { escrowTotals, formatUsdc, isEscrowFunded } from "@/lib/domain/escrow";
 import { StatusBadge } from "./StatusBadge";
+import { resolveCavosConfig } from "@/lib/cavos";
+import { useCavosSession } from "@/lib/cavos/session";
 
 function GoogleG({ className = "" }: { className?: string }) {
   return (
@@ -127,6 +131,151 @@ function MilestoneRow({ milestone }: { milestone: Milestone }) {
   );
 }
 
+function WalletCard({ project }: { project: Project }) {
+  const cfg = resolveCavosConfig();
+  const { session, openModal, logout } = useCavosSession();
+
+  // ── Demo mode: clearly mock ──
+  if (cfg.mode === "demo") {
+    return (
+      <div className="rounded-xl border border-dashed border-line-strong bg-white/50 p-4">
+        <div className="flex items-center justify-between">
+          <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink/40">
+            Mock session
+          </span>
+          <span className="rounded-full border border-line bg-white px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-ink/40">
+            DEMO
+          </span>
+        </div>
+        <p className="mt-2.5 text-[13px] font-medium text-ink/60">
+          {project.freelancer.email ?? "demo@cavos.xyz"}
+        </p>
+        <div className="mt-2 flex items-center gap-2">
+          <span className="font-mono text-[12.5px] text-ink/40">
+            {project.freelancer.walletShort ?? "G…demo"} · mock wallet
+          </span>
+          <span className="h-1.5 w-1.5 rounded-full bg-ink/20" />
+        </div>
+        <div className="mt-3 flex flex-wrap gap-1.5 border-t border-dashed border-line-strong pt-3">
+          {["preview data", "not a real wallet"].map((c) => (
+            <span
+              key={c}
+              className="rounded border border-line px-1.5 py-0.5 font-mono text-[10px] text-ink/35"
+            >
+              {c}
+            </span>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Configured + error: show error with retry ──
+  if (session.status === "error") {
+    return (
+      <div className="rounded-xl border border-brand/25 bg-brand-soft p-4">
+        <div className="flex items-center justify-between">
+          <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink/40">
+            Connection error
+          </span>
+          <span className="grid h-5 w-5 place-items-center rounded-full bg-white text-brand ring-1 ring-brand/25">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 8v4" />
+              <path d="M12 16h.01" />
+            </svg>
+          </span>
+        </div>
+        <p className="mt-2.5 text-[13px] text-muted">
+          {session.error}
+        </p>
+        <button
+          type="button"
+          onClick={openModal}
+          className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-brand/30 bg-white px-4 py-2.5 text-sm font-semibold text-brand shadow-sm transition-all hover:bg-brand-soft hover:shadow-md active:scale-[0.98]"
+        >
+          Try again
+        </button>
+      </div>
+    );
+  }
+
+  // ── Configured + disconnected: sign-in prompt ──
+  if (session.status !== "connected") {
+    return (
+      <div className="rounded-xl border border-line bg-white p-4">
+        <div className="flex items-center justify-between">
+          <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink/40">
+            Connect with Cavos
+          </span>
+          <span className="grid h-5 w-5 place-items-center rounded-full bg-white ring-1 ring-line">
+            <GoogleG />
+          </span>
+        </div>
+        <p className="mt-2.5 text-[13px] text-muted">
+          Sign in to connect your Stellar smart account.
+        </p>
+        <button
+          type="button"
+          onClick={openModal}
+          disabled={session.status === "connecting"}
+          className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-line bg-white px-4 py-2.5 text-sm font-semibold text-ink shadow-sm transition-all hover:bg-surface hover:shadow-md active:scale-[0.98] disabled:cursor-wait disabled:opacity-50"
+        >
+          <GoogleG className="h-4 w-4" />
+          {session.status === "connecting" ? "Connecting…" : "Sign in with Cavos"}
+        </button>
+      </div>
+    );
+  }
+
+  // ── Configured + connected: real session with disconnect ──
+  return (
+    <div className="rounded-xl border border-signal/20 bg-white p-4">
+      <div className="flex items-center justify-between">
+        <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink/40">
+          Signed in with Cavos
+        </span>
+        <span className="grid h-5 w-5 place-items-center rounded-full bg-white ring-1 ring-line">
+          <GoogleG />
+        </span>
+      </div>
+      <p className="mt-2.5 text-[13px] font-medium text-ink">
+        {session.email ?? "Connected"}
+      </p>
+      <div className="mt-2 flex items-center gap-2">
+        <span className="font-mono text-[12.5px] text-ink/70">
+          {session.address} · smart account
+        </span>
+        <span className="h-1.5 w-1.5 rounded-full bg-signal" />
+      </div>
+      <div className="mt-3 flex flex-wrap gap-1.5 border-t border-line pt-3">
+        {["self-custodial", "gas abstracted", "Stellar"].map((c) => (
+          <span
+            key={c}
+            className="rounded border border-line px-1.5 py-0.5 font-mono text-[10px] text-ink/50"
+          >
+            {c}
+          </span>
+        ))}
+      </div>
+      <div className="mt-4 border-t border-line pt-4">
+        <button
+          type="button"
+          onClick={logout}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-line bg-white px-4 py-2 text-sm font-medium text-muted shadow-sm transition-all hover:bg-surface hover:text-ink hover:shadow-md active:scale-[0.98]"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          Disconnect
+        </button>
+      </div>
+    </div>
+  );
+}
+
 interface EscrowContractCardProps {
   project: Project;
 }
@@ -213,35 +362,7 @@ export function EscrowContractCard({ project }: EscrowContractCardProps) {
         </div>
 
         {/* Cavos wallet card — the onboarding surface */}
-        <div className="rounded-xl border border-line bg-white p-4">
-          <div className="flex items-center justify-between">
-            <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink/40">
-              Signed in with Cavos
-            </span>
-            <span className="grid h-5 w-5 place-items-center rounded-full bg-white ring-1 ring-line">
-              <GoogleG />
-            </span>
-          </div>
-          <p className="mt-2.5 text-[13px] font-medium text-ink">
-            {project.freelancer.email ?? "Cavos sign-in pending"}
-          </p>
-          <div className="mt-2 flex items-center gap-2">
-            <span className="font-mono text-[12.5px] text-ink/70">
-              {project.freelancer.walletShort ?? "G…???"} · smart account
-            </span>
-            <span className="h-1.5 w-1.5 rounded-full bg-signal" />
-          </div>
-          <div className="mt-3 flex flex-wrap gap-1.5 border-t border-line pt-3">
-            {["self-custodial", "gas abstracted", "Stellar"].map((c) => (
-              <span
-                key={c}
-                className="rounded border border-line px-1.5 py-0.5 font-mono text-[10px] text-ink/50"
-              >
-                {c}
-              </span>
-            ))}
-          </div>
-        </div>
+        <WalletCard project={project} />
 
         {actionLabel ? (
           <>
