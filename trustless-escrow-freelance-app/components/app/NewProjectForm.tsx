@@ -55,6 +55,7 @@ export function NewProjectForm() {
           title: m.title.trim(),
           amount: Math.max(0, Math.floor(Number(m.amount)) || 0),
           state: "pending" as const,
+          funded: false,
         })),
     }),
     [title, clientName, freelancerHandle, milestones]

@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { availableMilestoneActions } from "@/lib/domain/transitions";
 import { getDemoScenario } from "@/lib/fixtures/projects";
 import { getProject } from "@/lib/gateway";
-import { EscrowContractCard } from "@/components/app/EscrowContractCard";
+import { ProjectWorkspace } from "@/components/app/ProjectWorkspace";
 
 interface ProjectPageProps {
   params: Promise<{ id: string }>;
@@ -17,14 +16,6 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
     title: `${project?.title ?? "Project not found"} | Trustless Escrow Freelance App`,
   };
 }
-
-const ACTION_LABELS: Record<string, string> = {
-  submit: "Submit work",
-  approve: "Approve",
-  dispute: "Dispute",
-  release: "Release funds",
-  reopen: "Reopen",
-};
 
 export default async function ProjectPage({ params }: ProjectPageProps) {
   const { id } = await params;
@@ -64,49 +55,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         ) : null}
       </div>
 
-      <div className="mt-8 overflow-hidden rounded-2xl border border-line bg-white shadow-[0_40px_80px_-48px_rgba(10,10,15,0.35)]">
-        <EscrowContractCard project={project} />
-      </div>
-
-      {/* Available actions, derived from the milestone state machine */}
-      <div className="mt-8 rounded-2xl border border-line bg-white p-6">
-        <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink/40">
-          Available milestone actions
-        </p>
-        <ul className="mt-4 space-y-3">
-          {project.milestones.map((m) => {
-            const actions = availableMilestoneActions(m.state);
-            return (
-              <li key={m.id} className="flex flex-wrap items-center justify-between gap-3">
-                <span className="text-[13.5px] font-medium text-ink">{m.title}</span>
-                <span className="flex flex-wrap gap-1.5">
-                  {actions.length === 0 ? (
-                    <span className="font-mono text-[11px] text-ink/40">
-                      terminal state
-                    </span>
-                  ) : (
-                    actions.map((a) => (
-                      <button
-                        key={a}
-                        type="button"
-                        disabled
-                        className="rounded-md border border-line-strong bg-white px-3 py-1.5 text-[12px] font-semibold text-ink/60 opacity-80"
-                      >
-                        {ACTION_LABELS[a]}
-                      </button>
-                    ))
-                  )}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-        <p className="mt-5 border-t border-line pt-4 text-[11.5px] text-ink/40">
-          Actions come from the milestone state machine in{" "}
-          <code className="font-mono text-[11px]">lib/domain/transitions.ts</code>.
-          They are disabled here — escrow action simulation is a follow-up issue.
-        </p>
-      </div>
+      <ProjectWorkspace project={project} />
     </div>
   );
 }
