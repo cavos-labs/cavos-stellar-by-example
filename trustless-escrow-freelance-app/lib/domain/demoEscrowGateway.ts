@@ -111,7 +111,12 @@ export class DemoEscrowGateway implements EscrowGateway {
     return this.ok(project);
   }
 
-  /** Finds the project and milestone or returns a NOT_FOUND result — used by every mutating operation. */
+  /**
+   * Finds the project and milestone, or returns a typed failure — used by
+   * every mutating operation. Cancelled projects are rejected here too:
+   * cancellation is terminal, so none of the four mutations that call this
+   * should be able to act on a cancelled project.
+   */
   private locate(projectId: string, milestoneId: string): Located | EscrowResult<Project> {
     const project = this.projects.get(projectId);
     if (!project) {
@@ -120,6 +125,9 @@ export class DemoEscrowGateway implements EscrowGateway {
     const milestone = project.milestones.find((m) => m.id === milestoneId);
     if (!milestone) {
       return this.fail("NOT_FOUND", `Milestone "${milestoneId}" was not found.`);
+    }
+    if (project.escrowStatus === "cancelled") {
+      return this.fail("PROJECT_CANCELLED", "Cannot perform actions on a cancelled project.");
     }
     return { project, milestone };
   }

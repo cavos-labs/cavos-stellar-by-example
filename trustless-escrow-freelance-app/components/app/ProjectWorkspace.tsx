@@ -96,9 +96,16 @@ export function ProjectWorkspace({ project: initialProject }: ProjectWorkspacePr
       </div>
 
       <div className="mt-8 rounded-2xl border border-line bg-white p-6">
-        <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink/40">
-          Milestone actions
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink/40">
+            Milestone actions
+          </p>
+          {project.escrowStatus === "cancelled" ? (
+            <span className="rounded-full border border-line-strong px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-ink/40">
+              Terminal state
+            </span>
+          ) : null}
+        </div>
 
         {status ? (
           <p
@@ -112,55 +119,61 @@ export function ProjectWorkspace({ project: initialProject }: ProjectWorkspacePr
           </p>
         ) : null}
 
-        <ul className="mt-4 space-y-3">
-          {project.milestones.map((m) => {
-            const actions = availableMilestoneActions(m.state);
-            return (
-              <li key={m.id} className="flex flex-wrap items-center justify-between gap-3">
-                <span className="text-[13.5px] font-medium text-ink">{m.title}</span>
-                <span className="flex flex-wrap gap-1.5">
-                  {!m.funded ? (
-                    <button
-                      type="button"
-                      disabled={pending}
-                      onClick={() => runFund(m.id)}
-                      className="rounded-md border border-brand/30 bg-brand-soft px-3 py-1.5 text-[12px] font-semibold text-brand transition-colors hover:bg-brand-soft/70 disabled:cursor-wait disabled:opacity-50"
-                    >
-                      Fund
-                    </button>
-                  ) : null}
-                  {actions.length === 0 ? (
-                    <span className="font-mono text-[11px] text-ink/40">terminal state</span>
-                  ) : (
-                    actions.map((a) =>
-                      isWiredAction(a) ? (
-                        <button
-                          key={a}
-                          type="button"
-                          disabled={pending || !m.funded}
-                          onClick={() => runAction(m.id, a)}
-                          className="rounded-md border border-line-strong bg-white px-3 py-1.5 text-[12px] font-semibold text-ink transition-colors hover:bg-surface disabled:cursor-wait disabled:opacity-50"
-                        >
-                          {ACTION_LABELS[a]}
-                        </button>
-                      ) : (
-                        <button
-                          key={a}
-                          type="button"
-                          disabled
-                          title="Not implemented by the demo gateway yet"
-                          className="rounded-md border border-line-strong bg-white px-3 py-1.5 text-[12px] font-semibold text-ink/40 opacity-60"
-                        >
-                          {ACTION_LABELS[a]}
-                        </button>
+        {project.escrowStatus === "cancelled" ? (
+          <p className="mt-4 rounded-xl border border-dashed border-line-strong px-4 py-6 text-center text-[12.5px] text-muted">
+            Contract cancelled — no further escrow actions are available.
+          </p>
+        ) : (
+          <ul className="mt-4 space-y-3">
+            {project.milestones.map((m) => {
+              const actions = availableMilestoneActions(m.state);
+              return (
+                <li key={m.id} className="flex flex-wrap items-center justify-between gap-3">
+                  <span className="text-[13.5px] font-medium text-ink">{m.title}</span>
+                  <span className="flex flex-wrap gap-1.5">
+                    {!m.funded ? (
+                      <button
+                        type="button"
+                        disabled={pending}
+                        onClick={() => runFund(m.id)}
+                        className="rounded-md border border-brand/30 bg-brand-soft px-3 py-1.5 text-[12px] font-semibold text-brand transition-colors hover:bg-brand-soft/70 disabled:cursor-wait disabled:opacity-50"
+                      >
+                        Fund
+                      </button>
+                    ) : null}
+                    {actions.length === 0 ? (
+                      <span className="font-mono text-[11px] text-ink/40">terminal state</span>
+                    ) : (
+                      actions.map((a) =>
+                        isWiredAction(a) ? (
+                          <button
+                            key={a}
+                            type="button"
+                            disabled={pending || !m.funded}
+                            onClick={() => runAction(m.id, a)}
+                            className="rounded-md border border-line-strong bg-white px-3 py-1.5 text-[12px] font-semibold text-ink transition-colors hover:bg-surface disabled:cursor-wait disabled:opacity-50"
+                          >
+                            {ACTION_LABELS[a]}
+                          </button>
+                        ) : (
+                          <button
+                            key={a}
+                            type="button"
+                            disabled
+                            title="Not implemented by the demo gateway yet"
+                            className="rounded-md border border-line-strong bg-white px-3 py-1.5 text-[12px] font-semibold text-ink/40 opacity-60"
+                          >
+                            {ACTION_LABELS[a]}
+                          </button>
+                        )
                       )
-                    )
-                  )}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
+                    )}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
         <p className="mt-5 border-t border-line pt-4 text-[11.5px] text-ink/40">
           Actions call <code className="font-mono text-[11px]">DemoEscrowGateway</code>, a
           deterministic in-memory simulator seeded from the Wave 0 fixtures — state resets on

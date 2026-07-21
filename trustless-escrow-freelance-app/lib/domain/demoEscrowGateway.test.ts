@@ -133,6 +133,22 @@ describe("DemoEscrowGateway", () => {
     });
   });
 
+  it("returns PROJECT_CANCELLED and leaves state untouched for a cancelled project", async () => {
+    const seededGateway = new DemoEscrowGateway();
+    const result = await seededGateway.fundMilestone("podcast-cover-art", "m1");
+    expect(result).toEqual({
+      success: false,
+      error: { code: "PROJECT_CANCELLED", message: expect.any(String) },
+    });
+
+    const state = await seededGateway.getEscrow("podcast-cover-art");
+    if (!state.success) throw new Error("expected getEscrow to succeed");
+    expect(state.data.escrowStatus).toBe("cancelled");
+    const milestone = state.data.milestones.find((m) => m.id === "m1");
+    expect(milestone?.funded).toBe(false);
+    expect(milestone?.state).toBe("pending");
+  });
+
   it("returns cloned data so callers cannot mutate internal state", async () => {
     await gateway.createEscrow(newProjectInput("proj-6"));
     const result = await gateway.getEscrow("proj-6");
