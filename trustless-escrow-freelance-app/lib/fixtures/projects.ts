@@ -32,9 +32,9 @@ export const demoProjects: Project[] = [
     escrowStatus: "draft",
     asset: "USDC",
     milestones: [
-      { id: "m1", title: "UX research & interviews", amount: 300, state: "pending" },
-      { id: "m2", title: "Flow prototypes", amount: 450, state: "pending" },
-      { id: "m3", title: "Handoff specs", amount: 250, state: "pending" },
+      { id: "m1", title: "UX research & interviews", amount: 300, state: "pending", funded: false },
+      { id: "m2", title: "Flow prototypes", amount: 450, state: "pending", funded: false },
+      { id: "m3", title: "Handoff specs", amount: 250, state: "pending", funded: false },
     ],
   },
   {
@@ -53,9 +53,9 @@ export const demoProjects: Project[] = [
     escrowStatus: "awaiting_funding",
     asset: "USDC",
     milestones: [
-      { id: "m1", title: "Discovery & audit report", amount: 250, state: "pending" },
-      { id: "m2", title: "Integration fixes", amount: 400, state: "pending" },
-      { id: "m3", title: "Regression test pass", amount: 150, state: "pending" },
+      { id: "m1", title: "Discovery & audit report", amount: 250, state: "pending", funded: false },
+      { id: "m2", title: "Integration fixes", amount: 400, state: "pending", funded: false },
+      { id: "m3", title: "Regression test pass", amount: 150, state: "pending", funded: false },
     ],
   },
   {
@@ -74,9 +74,9 @@ export const demoProjects: Project[] = [
     escrowStatus: "funded",
     asset: "USDC",
     milestones: [
-      { id: "m1", title: "Moodboard & direction", amount: 200, state: "submitted" },
-      { id: "m2", title: "Logo system", amount: 450, state: "pending" },
-      { id: "m3", title: "Brand guidelines", amount: 350, state: "pending" },
+      { id: "m1", title: "Moodboard & direction", amount: 200, state: "submitted", funded: true },
+      { id: "m2", title: "Logo system", amount: 450, state: "pending", funded: true },
+      { id: "m3", title: "Brand guidelines", amount: 350, state: "pending", funded: true },
     ],
   },
   {
@@ -95,9 +95,9 @@ export const demoProjects: Project[] = [
     escrowStatus: "partially_released",
     asset: "USDC",
     milestones: [
-      { id: "m1", title: "Wireframes & IA", amount: 300, state: "released" },
-      { id: "m2", title: "Visual design", amount: 400, state: "released" },
-      { id: "m3", title: "Front-end build", amount: 500, state: "submitted" },
+      { id: "m1", title: "Wireframes & IA", amount: 300, state: "released", funded: true },
+      { id: "m2", title: "Visual design", amount: 400, state: "released", funded: true },
+      { id: "m3", title: "Front-end build", amount: 500, state: "submitted", funded: true },
     ],
   },
   {
@@ -116,8 +116,8 @@ export const demoProjects: Project[] = [
     escrowStatus: "cancelled",
     asset: "USDC",
     milestones: [
-      { id: "m1", title: "Concept sketches", amount: 120, state: "pending" },
-      { id: "m2", title: "Final artwork", amount: 280, state: "pending" },
+      { id: "m1", title: "Concept sketches", amount: 120, state: "pending", funded: false },
+      { id: "m2", title: "Final artwork", amount: 280, state: "pending", funded: false },
     ],
   },
 ];

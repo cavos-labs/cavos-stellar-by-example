@@ -49,6 +49,13 @@ export interface Milestone {
   /** Whole USDC units — enough precision for the demo fixtures. */
   amount: number;
   state: MilestoneState;
+  /**
+   * Whether this milestone's amount is locked in the escrow contract.
+   * Tracked independently of `state`: a milestone can be funded while
+   * still `pending` (work not submitted yet) or `submitted` (awaiting
+   * approval) — funding and work progress advance separately.
+   */
+  funded: boolean;
 }
 
 export interface Project {
