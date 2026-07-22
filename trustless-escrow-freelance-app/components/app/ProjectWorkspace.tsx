@@ -176,8 +176,8 @@ export function ProjectWorkspace({ project: initialProject }: ProjectWorkspacePr
         )}
         <p className="mt-5 border-t border-line pt-4 text-[11.5px] text-ink/40">
           Actions call <code className="font-mono text-[11px]">DemoEscrowGateway</code>, a
-          deterministic in-memory simulator seeded from the Wave 0 fixtures — state resets on
-          page reload. See{" "}
+          deterministic in-memory simulator seeded from the Wave 0 fixtures. Projects created
+          through the form are persisted in browser storage. See{" "}
           <code className="font-mono text-[11px]">docs/ESCROW_GATEWAY_SEAM.md</code> for how a
           real gateway replaces it.
         </p>

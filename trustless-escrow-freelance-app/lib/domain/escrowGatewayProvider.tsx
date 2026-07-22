@@ -1,32 +1,92 @@
 "use client";
 
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
+import { demoProjects as fixtureProjects } from "../fixtures/projects";
+import { clearDemoProjects, loadAllDemoProjects, saveDemoProject } from "../localDemoStore";
 import { DemoEscrowGateway } from "./demoEscrowGateway";
-import type { EscrowGateway } from "./escrowGateway";
+import type { EscrowGateway, EscrowResult } from "./escrowGateway";
+import type { Project } from "./types";
 
-const EscrowGatewayContext = createContext<EscrowGateway | null>(null);
+interface DemoEscrowContextValue {
+  gateway: EscrowGateway;
+  demoProjects: Project[];
+  createDemoEscrow(input: Omit<Project, "escrowStatus">): Promise<EscrowResult<Project>>;
+  resetDemoProjects(): void;
+  lastPersistError: string | null;
+  clearPersistError(): void;
+}
 
-/**
- * Provides the app's single EscrowGateway instance, scoped to the app
- * shell (not the public landing page, which stays static).
- *
- * This is the seam: swapping the demo simulator for a real Cavos +
- * Trustless Work gateway later is a one-line change here — every
- * component reaches the gateway through `useEscrowGateway()`, never by
- * constructing an implementation directly. See
- * docs/ESCROW_GATEWAY_SEAM.md.
- */
+const DemoEscrowContext = createContext<DemoEscrowContextValue | null>(null);
+
+function buildGateway(extra: Project[]): DemoEscrowGateway {
+  return new DemoEscrowGateway([...fixtureProjects, ...extra]);
+}
+
 export function EscrowGatewayProvider({ children }: { children: ReactNode }) {
-  const [gateway] = useState<EscrowGateway>(() => new DemoEscrowGateway());
+  const [demoProjects, setDemoProjects] = useState<Project[]>(() => loadAllDemoProjects());
+  const [gateway, setGateway] = useState<DemoEscrowGateway>(() => buildGateway(demoProjects));
+  const [lastPersistError, setLastPersistError] = useState<string | null>(null);
+  const persistErrorRef = useRef<string | null>(null);
+
+  const createDemoEscrow = useCallback(async (
+    input: Omit<Project, "escrowStatus">
+  ): Promise<EscrowResult<Project>> => {
+    const result = await gateway.createEscrow(input);
+    if (!result.success) return result;
+
+    const persist = saveDemoProject(result.data);
+    setDemoProjects(loadAllDemoProjects());
+
+    if (!persist.ok) {
+      persistErrorRef.current = persist.error;
+      setLastPersistError(persist.error);
+    } else {
+      persistErrorRef.current = null;
+      setLastPersistError(null);
+    }
+
+    return result;
+  }, [gateway]);
+
+  const resetDemoProjects = useCallback(() => {
+    clearDemoProjects();
+    setGateway(new DemoEscrowGateway());
+    setDemoProjects([]);
+    persistErrorRef.current = null;
+    setLastPersistError(null);
+  }, []);
+
+  const clearPersistError = useCallback(() => {
+    persistErrorRef.current = null;
+    setLastPersistError(null);
+  }, []);
+
+  const value = useMemo<DemoEscrowContextValue>(() => ({
+    gateway,
+    demoProjects,
+    createDemoEscrow,
+    resetDemoProjects,
+    lastPersistError,
+    clearPersistError,
+  }), [gateway, demoProjects, createDemoEscrow, resetDemoProjects, lastPersistError, clearPersistError]);
+
   return (
-    <EscrowGatewayContext.Provider value={gateway}>{children}</EscrowGatewayContext.Provider>
+    <DemoEscrowContext.Provider value={value}>{children}</DemoEscrowContext.Provider>
   );
 }
 
 export function useEscrowGateway(): EscrowGateway {
-  const gateway = useContext(EscrowGatewayContext);
-  if (!gateway) {
+  const ctx = useContext(DemoEscrowContext);
+  if (!ctx) {
     throw new Error("useEscrowGateway must be used within an EscrowGatewayProvider.");
   }
-  return gateway;
+  return ctx.gateway;
+}
+
+export function useEscrowGatewayWithDemo(): DemoEscrowContextValue {
+  const ctx = useContext(DemoEscrowContext);
+  if (!ctx) {
+    throw new Error("useEscrowGatewayWithDemo must be used within an EscrowGatewayProvider.");
+  }
+  return ctx;
 }
