@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useEscrowGatewayWithDemo } from "@/lib/domain/escrowGatewayProvider";
 import { getDemoScenario } from "@/lib/fixtures/projects";
 import type { EscrowStatus, Project } from "@/lib/domain/types";
@@ -13,6 +13,7 @@ interface DashboardContentProps {
 
 export function DashboardContent({ fixtureProjects, filterStatuses }: DashboardContentProps) {
   const { demoProjects, resetDemoProjects } = useEscrowGatewayWithDemo();
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const merged = useMemo(() => {
     const visible = (projects: Project[]) =>
@@ -70,7 +71,7 @@ export function DashboardContent({ fixtureProjects, filterStatuses }: DashboardC
                 </p>
                 <button
                   type="button"
-                  onClick={resetDemoProjects}
+                  onClick={() => setShowConfirm(true)}
                   className="rounded-md border border-line-strong px-3 py-1.5 text-[11px] font-medium text-ink/50 transition-colors hover:border-red-400 hover:text-red-600"
                 >
                   Clear demo data
@@ -90,6 +91,52 @@ export function DashboardContent({ fixtureProjects, filterStatuses }: DashboardC
           ) : null}
         </>
       )}
+
+      {showConfirm ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          onClick={() => setShowConfirm(false)}
+        >
+          <div
+            className="relative w-full max-w-sm rounded-2xl border border-line bg-white p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setShowConfirm(false)}
+              className="absolute right-3 top-3 flex size-6 items-center justify-center rounded-full text-[14px] text-ink/40 transition-colors hover:bg-line/60 hover:text-ink/70"
+              aria-label="Close"
+            >
+              ✕
+            </button>
+            <p className="text-center text-[14px] font-semibold text-ink">
+              Delete all simulated projects?
+            </p>
+            <p className="mt-1 text-center text-[12.5px] text-muted">
+              This action cannot be undone.
+            </p>
+            <div className="mt-5 flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setShowConfirm(false)}
+                className="rounded-lg border border-line-strong px-5 py-2 text-[12.5px] font-medium text-ink/70 transition-colors hover:bg-line/50"
+              >
+                Don&apos;t Delete it
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  resetDemoProjects();
+                  setShowConfirm(false);
+                }}
+                className="rounded-lg bg-red-600 px-5 py-2 text-[12.5px] font-medium text-white transition-colors hover:bg-red-700"
+              >
+                Yes, Delete it
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
