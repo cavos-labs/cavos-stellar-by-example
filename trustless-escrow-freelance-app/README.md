@@ -15,13 +15,13 @@ the starting point for their own product.
 ## Status
 
 **This is a mock-up — a landing page plus a navigable app shell running on
-deterministic demo data.** Cavos session wiring with
-[@cavos/kit](https://www.npmjs.com/package/@cavos/kit) (`chain: "stellar"`) is
-live—users can connect a real Stellar self-custodial wallet on testnet. There
-is no Trustless Work API integration yet. The dashboard, project detail view,
-and new-project flow render typed fixture data so the use case is clear to
-contributors and visitors, and so UI, test, and integration work can advance in
-parallel.
+deterministic demo data plus browser-local simulated projects.** Cavos session
+wiring with [@cavos/kit](https://www.npmjs.com/package/@cavos/kit)
+(`chain: "stellar"`) is live — users can connect a real Stellar self-custodial
+wallet on testnet. There is no Trustless Work API integration yet. The new-project
+flow now creates real local demo escrows through the `EscrowGateway` simulator,
+persisted in browser localStorage and surviving refresh. Five built-in fixture
+scenarios remain as before, clearly distinguished from user-created projects.
 
 The intended end state (open for contributions):
 
@@ -66,7 +66,7 @@ replaces without touching the UI).
 | --- | --- |
 | `/` | Landing page (unchanged visual language) |
 | `/dashboard` | Project list with status filters, loading skeleton, and empty state (e.g. `/dashboard?status=released`) |
-| `/projects/new` | New-project flow: draft a contract and preview it live (simulated, nothing persisted) |
+| `/projects/new` | New-project flow: create a local demo escrow (validated, persisted in browser storage) |
 | `/projects/mobile-onboarding-flow` | **Draft** scenario |
 | `/projects/api-integration-audit` | **Awaiting funding** scenario |
 | `/projects/brand-identity-kit` | **Funded · work submitted** scenario |
@@ -77,7 +77,29 @@ replaces without touching the UI).
 An unknown dashboard filter (e.g. `/dashboard?status=nope`) renders a
 deliberate unsupported-filter state. Milestone action buttons on the project
 detail view are derived from the state machine in `lib/domain/transitions.ts`
-and are disabled until the escrow-action simulation lands.
+and are wired to the `DemoEscrowGateway` simulator for fund / submit / approve /
+release actions.
+
+### Local end-to-end demo flow
+
+The new-project form creates a real local demo escrow through the
+`EscrowGateway` simulator and persists it in browser localStorage.
+
+1. Open `/dashboard` — five built-in demo scenarios are visible under "Demo scenarios".
+2. Click **"New project"** → fill title, client, freelancer handle, and at least one milestone with a positive whole-USDC amount.
+3. Submit — a success banner shows the generated **project ID** and **simulator reference** (e.g. `sim-tx-000004`).
+4. After a brief pause, the app navigates to `/projects/[id]` — the project renders with its milestones and the full `ProjectWorkspace` (fund / submit / approve / release actions).
+5. Navigate to `/dashboard` — the new project appears under **"Your simulated projects"**, clearly labeled as "Simulated" vs the fixture scenarios' labels.
+6. **Refresh the browser** — the project remains visible on both dashboard and detail pages.
+7. Click **"Clear demo data"** on the dashboard — only browser-created projects are removed. The five fixture scenarios remain untouched.
+8. Direct URL access to a created project (e.g. `/projects/demo-a1b2c3d4`) resolves correctly from localStorage.
+
+### Simulation boundary
+
+- The `DemoEscrowGateway` is a deterministic in-memory simulator with a monotonic transaction reference counter (`sim-tx-000001`, `sim-tx-000002`, …).
+- Projects created through the form are persisted in browser localStorage keyed `cavos-demo-projects`. Fixture projects never enter localStorage.
+- No Trustless Work API, Soroban contract, Stellar transaction, USDC transfer, or server-side database is involved.
+- A future `TrustlessWorkGateway` implementing the same `EscrowGateway` interface can replace the simulator without changing the UI or routes (see `docs/ESCROW_GATEWAY_SEAM.md`).
 
 ## Get a Cavos App ID
 
@@ -235,7 +257,9 @@ components/
     ProjectCard.tsx       Dashboard project tile
     StatusBadge.tsx       Escrow status chip
     EmptyState.tsx        Deliberate empty / error surface
-    NewProjectForm.tsx    Draft builder with live preview (client)
+    NewProjectForm.tsx    Create local demo escrows (validated, gateway-backed, persisted)
+    DashboardContent.tsx  Merged fixture + simulated project listing with safe reset
+    ProjectDetailClient.tsx Client-resolution bridge for fixture and simulated projects
 lib/
   links.ts          Shared external links
   cavos/
@@ -243,6 +267,9 @@ lib/
     session.ts        useCavosSession() — 4-state session hook (unit tested)
     provider.tsx      <CavosProvider> wrapper
     index.ts          Barrel re-exports
+  localDemoStore.ts Browser-local persistence for user-created demo projects (versioned, SSR-safe)
+  new-project/
+    validation.ts   Pure validation + form→gateway mapping functions (unit tested)
   gateway.ts        Async data gateway over the fixtures (swap point for real APIs)
   domain/
     types.ts          Project, Milestone, Party, EscrowStatus, actions

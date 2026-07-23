@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { EscrowStatus } from "@/lib/domain/types";
 import { listProjects } from "@/lib/gateway";
 import { EmptyState } from "@/components/app/EmptyState";
-import { ProjectCard } from "@/components/app/ProjectCard";
+import { DashboardContent } from "@/components/app/DashboardContent";
 
 export const metadata: Metadata = {
   title: "Dashboard | Trustless Escrow Freelance App",
@@ -49,7 +49,6 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         </Link>
       </div>
 
-      {/* Status filter tabs */}
       <div className="mt-7 flex flex-wrap gap-1.5">
         {Object.entries(FILTERS).map(([key, f]) => {
           const active = key === filterKey;
@@ -69,35 +68,20 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         })}
       </div>
 
-      <div className="mt-6">
-        {filter === undefined ? (
+      {filter === undefined ? (
+        <div className="mt-6">
           <EmptyState
-            title={`Unsupported filter: “${filterKey}”`}
+            title={`Unsupported filter: "${filterKey}"`}
             body="That status filter doesn't exist. Pick one of the tabs above, or view all projects."
             action={{ href: "/dashboard", label: "View all projects" }}
           />
-        ) : (
-          (() => {
-            const visible =
-              filter.statuses === null
-                ? projects
-                : projects.filter((p) => filter.statuses!.includes(p.escrowStatus));
-            return visible.length === 0 ? (
-              <EmptyState
-                title={`No ${filter.label.toLowerCase()} projects`}
-                body="No demo scenario is in this state right now. Start a new project or browse the other tabs."
-                action={{ href: "/projects/new", label: "Start a project" }}
-              />
-            ) : (
-              <div className="grid gap-4 sm:grid-cols-2">
-                {visible.map((p) => (
-                  <ProjectCard key={p.id} project={p} />
-                ))}
-              </div>
-            );
-          })()
-        )}
-      </div>
+        </div>
+      ) : (
+        <DashboardContent
+          fixtureProjects={projects}
+          filterStatuses={filter.statuses}
+        />
+      )}
     </div>
   );
 }

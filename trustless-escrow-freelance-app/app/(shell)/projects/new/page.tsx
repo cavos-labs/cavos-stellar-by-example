@@ -16,7 +16,7 @@ export default function NewProjectPage() {
       </h1>
       <p className="mt-1 max-w-[60ch] text-[13.5px] text-muted">
         Define the parties and milestones, and preview the contract exactly as it
-        will render once funded. Creation is simulated — no data is persisted yet.
+        will render once funded. Data is stored in your browser as a local demo.
       </p>
       <div className="mt-8">
         <NewProjectForm />
