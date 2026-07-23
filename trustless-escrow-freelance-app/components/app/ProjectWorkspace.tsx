@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useEscrowGateway } from "@/lib/domain/escrowGatewayProvider";
+import { useEscrowGatewayWithDemo } from "@/lib/domain/escrowGatewayProvider";
 import { availableMilestoneActions } from "@/lib/domain/transitions";
 import type { MilestoneAction, Project } from "@/lib/domain/types";
 import { EscrowContractCard } from "./EscrowContractCard";
@@ -37,7 +37,13 @@ interface ProjectWorkspaceProps {
  * reflected everywhere immediately.
  */
 export function ProjectWorkspace({ project: initialProject }: ProjectWorkspaceProps) {
-  const gateway = useEscrowGateway();
+  const {
+    gateway,
+    fundMilestone: fundWithPersist,
+    submitMilestone: submitWithPersist,
+    approveMilestone: approveWithPersist,
+    releaseMilestone: releaseWithPersist,
+  } = useEscrowGatewayWithDemo();
   const [project, setProject] = useState(initialProject);
   const [pending, setPending] = useState(false);
   const [status, setStatus] = useState<StatusMessage | null>(null);
@@ -59,7 +65,7 @@ export function ProjectWorkspace({ project: initialProject }: ProjectWorkspacePr
   async function runFund(milestoneId: string) {
     setPending(true);
     setStatus(null);
-    const result = await gateway.fundMilestone(project.id, milestoneId);
+    const result = await fundWithPersist(project.id, milestoneId);
     setPending(false);
     if (result.success) {
       setProject(result.data);
@@ -73,10 +79,10 @@ export function ProjectWorkspace({ project: initialProject }: ProjectWorkspacePr
     setPending(true);
     setStatus(null);
     const result = await (action === "submit"
-      ? gateway.submitMilestone(project.id, milestoneId)
+      ? submitWithPersist(project.id, milestoneId)
       : action === "approve"
-        ? gateway.approveMilestone(project.id, milestoneId)
-        : gateway.releaseMilestone(project.id, milestoneId));
+        ? approveWithPersist(project.id, milestoneId)
+        : releaseWithPersist(project.id, milestoneId));
     setPending(false);
     if (result.success) {
       setProject(result.data);
@@ -176,8 +182,8 @@ export function ProjectWorkspace({ project: initialProject }: ProjectWorkspacePr
         )}
         <p className="mt-5 border-t border-line pt-4 text-[11.5px] text-ink/40">
           Actions call <code className="font-mono text-[11px]">DemoEscrowGateway</code>, a
-          deterministic in-memory simulator seeded from the Wave 0 fixtures. Projects created
-          through the form are persisted in browser storage. See{" "}
+          deterministic in-memory simulator seeded from the Wave 0 fixtures. Projects and
+          their milestone state are persisted in browser storage. See{" "}
           <code className="font-mono text-[11px]">docs/ESCROW_GATEWAY_SEAM.md</code> for how a
           real gateway replaces it.
         </p>

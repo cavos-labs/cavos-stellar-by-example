@@ -3,6 +3,7 @@ import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 import type { ReactNode } from "react";
 import { EscrowGatewayProvider, useEscrowGateway, useEscrowGatewayWithDemo } from "./escrowGatewayProvider";
+import { loadAllDemoProjects } from "../localDemoStore";
 import type { Project } from "./types";
 
 const store: Record<string, string> = {};
@@ -127,6 +128,169 @@ describe("EscrowGatewayProvider", () => {
 
     const escrow = await result.current.gateway.getEscrow("mobile-onboarding-flow");
     expect(escrow.success).toBe(true);
+  });
+
+  it("fundMilestone persists the funded milestone to local storage", async () => {
+    const { result } = renderHook(() => useEscrowGatewayWithDemo(), { wrapper });
+
+    const input: Omit<Project, "escrowStatus"> = {
+      id: "demo-fund-test",
+      title: "Fund test",
+      summary: "",
+      client: { id: "c1", role: "client", name: "Client" },
+      freelancer: { id: "f1", role: "freelancer", name: "Freelancer" },
+      asset: "USDC",
+      milestones: [
+        { id: "m1", title: "First", amount: 100, state: "pending", funded: false },
+      ],
+    };
+
+    await act(async () => result.current.createDemoEscrow(input));
+
+    const fundResult = await act(async () => result.current.fundMilestone("demo-fund-test", "m1"));
+    expect(fundResult.success).toBe(true);
+
+    const stored = loadAllDemoProjects();
+    const project = stored.find((p) => p.id === "demo-fund-test");
+    expect(project).toBeDefined();
+    expect(project!.milestones[0].funded).toBe(true);
+  });
+
+  it("fundMilestone returns ALREADY_FUNDED and does not persist bad state", async () => {
+    const { result } = renderHook(() => useEscrowGatewayWithDemo(), { wrapper });
+
+    const input: Omit<Project, "escrowStatus"> = {
+      id: "demo-dup-fund",
+      title: "Dup fund",
+      summary: "",
+      client: { id: "c1", role: "client", name: "Client" },
+      freelancer: { id: "f1", role: "freelancer", name: "Freelancer" },
+      asset: "USDC",
+      milestones: [
+        { id: "m1", title: "First", amount: 100, state: "pending", funded: false },
+      ],
+    };
+
+    await act(async () => result.current.createDemoEscrow(input));
+    await act(async () => result.current.fundMilestone("demo-dup-fund", "m1"));
+
+    const second = await act(async () => result.current.fundMilestone("demo-dup-fund", "m1"));
+    expect(second.success).toBe(false);
+    expect(second.error!.code).toBe("ALREADY_FUNDED");
+  });
+
+  it("submitMilestone persists the state transition to local storage", async () => {
+    const { result } = renderHook(() => useEscrowGatewayWithDemo(), { wrapper });
+
+    const input: Omit<Project, "escrowStatus"> = {
+      id: "demo-submit-test",
+      title: "Submit test",
+      summary: "",
+      client: { id: "c1", role: "client", name: "Client" },
+      freelancer: { id: "f1", role: "freelancer", name: "Freelancer" },
+      asset: "USDC",
+      milestones: [
+        { id: "m1", title: "First", amount: 100, state: "pending", funded: false },
+      ],
+    };
+
+    await act(async () => result.current.createDemoEscrow(input));
+    await act(async () => result.current.fundMilestone("demo-submit-test", "m1"));
+
+    const submitResult = await act(async () => result.current.submitMilestone("demo-submit-test", "m1"));
+    expect(submitResult.success).toBe(true);
+
+    const stored = loadAllDemoProjects();
+    const project = stored.find((p) => p.id === "demo-submit-test");
+    expect(project).toBeDefined();
+    expect(project!.milestones[0].state).toBe("submitted");
+  });
+
+  it("approveMilestone persists the state transition to local storage", async () => {
+    const { result } = renderHook(() => useEscrowGatewayWithDemo(), { wrapper });
+
+    const input: Omit<Project, "escrowStatus"> = {
+      id: "demo-approve-test",
+      title: "Approve test",
+      summary: "",
+      client: { id: "c1", role: "client", name: "Client" },
+      freelancer: { id: "f1", role: "freelancer", name: "Freelancer" },
+      asset: "USDC",
+      milestones: [
+        { id: "m1", title: "First", amount: 100, state: "pending", funded: false },
+      ],
+    };
+
+    await act(async () => result.current.createDemoEscrow(input));
+    await act(async () => result.current.fundMilestone("demo-approve-test", "m1"));
+    await act(async () => result.current.submitMilestone("demo-approve-test", "m1"));
+
+    const approveResult = await act(async () => result.current.approveMilestone("demo-approve-test", "m1"));
+    expect(approveResult.success).toBe(true);
+
+    const stored = loadAllDemoProjects();
+    const project = stored.find((p) => p.id === "demo-approve-test");
+    expect(project).toBeDefined();
+    expect(project!.milestones[0].state).toBe("approved");
+  });
+
+  it("releaseMilestone persists the state transition to local storage", async () => {
+    const { result } = renderHook(() => useEscrowGatewayWithDemo(), { wrapper });
+
+    const input: Omit<Project, "escrowStatus"> = {
+      id: "demo-release-test",
+      title: "Release test",
+      summary: "",
+      client: { id: "c1", role: "client", name: "Client" },
+      freelancer: { id: "f1", role: "freelancer", name: "Freelancer" },
+      asset: "USDC",
+      milestones: [
+        { id: "m1", title: "First", amount: 100, state: "pending", funded: false },
+      ],
+    };
+
+    await act(async () => result.current.createDemoEscrow(input));
+    await act(async () => result.current.fundMilestone("demo-release-test", "m1"));
+    await act(async () => result.current.submitMilestone("demo-release-test", "m1"));
+    await act(async () => result.current.approveMilestone("demo-release-test", "m1"));
+
+    const releaseResult = await act(async () => result.current.releaseMilestone("demo-release-test", "m1"));
+    expect(releaseResult.success).toBe(true);
+
+    const stored = loadAllDemoProjects();
+    const project = stored.find((p) => p.id === "demo-release-test");
+    expect(project).toBeDefined();
+    expect(project!.milestones[0].state).toBe("released");
+    expect(project!.milestones[0].funded).toBe(true);
+  });
+
+  it("persists milestone state through full create→fund→submit→approve→release cycle and survives rehydration", async () => {
+    const { result } = renderHook(() => useEscrowGatewayWithDemo(), { wrapper });
+
+    const input: Omit<Project, "escrowStatus"> = {
+      id: "demo-rehydrate",
+      title: "Rehydration test",
+      summary: "",
+      client: { id: "c1", role: "client", name: "Client" },
+      freelancer: { id: "f1", role: "freelancer", name: "Freelancer" },
+      asset: "USDC",
+      milestones: [
+        { id: "m1", title: "First", amount: 100, state: "pending", funded: false },
+      ],
+    };
+
+    await act(async () => result.current.createDemoEscrow(input));
+    await act(async () => result.current.fundMilestone("demo-rehydrate", "m1"));
+    await act(async () => result.current.submitMilestone("demo-rehydrate", "m1"));
+    await act(async () => result.current.approveMilestone("demo-rehydrate", "m1"));
+    await act(async () => result.current.releaseMilestone("demo-rehydrate", "m1"));
+
+    const stored = loadAllDemoProjects();
+    const project = stored.find((p) => p.id === "demo-rehydrate");
+    expect(project).toBeDefined();
+    expect(project!.milestones[0].state).toBe("released");
+    expect(project!.milestones[0].funded).toBe(true);
+    expect(project!.escrowStatus).toBe("released");
   });
 
   it("exposes lastPersistError when persistence fails", async () => {

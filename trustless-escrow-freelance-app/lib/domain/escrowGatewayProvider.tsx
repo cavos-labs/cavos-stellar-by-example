@@ -11,6 +11,10 @@ interface DemoEscrowContextValue {
   gateway: EscrowGateway;
   demoProjects: Project[];
   createDemoEscrow(input: Omit<Project, "escrowStatus">): Promise<EscrowResult<Project>>;
+  fundMilestone(projectId: string, milestoneId: string): Promise<EscrowResult<Project>>;
+  submitMilestone(projectId: string, milestoneId: string): Promise<EscrowResult<Project>>;
+  approveMilestone(projectId: string, milestoneId: string): Promise<EscrowResult<Project>>;
+  releaseMilestone(projectId: string, milestoneId: string): Promise<EscrowResult<Project>>;
   resetDemoProjects(): void;
   lastPersistError: string | null;
   clearPersistError(): void;
@@ -48,6 +52,78 @@ export function EscrowGatewayProvider({ children }: { children: ReactNode }) {
     return result;
   }, [gateway]);
 
+  const fundMilestone = useCallback(async (
+    projectId: string, milestoneId: string
+  ): Promise<EscrowResult<Project>> => {
+    const result = await gateway.fundMilestone(projectId, milestoneId);
+    if (result.success) {
+      const persist = saveDemoProject(result.data);
+      setDemoProjects(loadAllDemoProjects());
+      if (!persist.ok) {
+        persistErrorRef.current = persist.error;
+        setLastPersistError(persist.error);
+      } else {
+        persistErrorRef.current = null;
+        setLastPersistError(null);
+      }
+    }
+    return result;
+  }, [gateway]);
+
+  const submitMilestone = useCallback(async (
+    projectId: string, milestoneId: string
+  ): Promise<EscrowResult<Project>> => {
+    const result = await gateway.submitMilestone(projectId, milestoneId);
+    if (result.success) {
+      const persist = saveDemoProject(result.data);
+      setDemoProjects(loadAllDemoProjects());
+      if (!persist.ok) {
+        persistErrorRef.current = persist.error;
+        setLastPersistError(persist.error);
+      } else {
+        persistErrorRef.current = null;
+        setLastPersistError(null);
+      }
+    }
+    return result;
+  }, [gateway]);
+
+  const approveMilestone = useCallback(async (
+    projectId: string, milestoneId: string
+  ): Promise<EscrowResult<Project>> => {
+    const result = await gateway.approveMilestone(projectId, milestoneId);
+    if (result.success) {
+      const persist = saveDemoProject(result.data);
+      setDemoProjects(loadAllDemoProjects());
+      if (!persist.ok) {
+        persistErrorRef.current = persist.error;
+        setLastPersistError(persist.error);
+      } else {
+        persistErrorRef.current = null;
+        setLastPersistError(null);
+      }
+    }
+    return result;
+  }, [gateway]);
+
+  const releaseMilestone = useCallback(async (
+    projectId: string, milestoneId: string
+  ): Promise<EscrowResult<Project>> => {
+    const result = await gateway.releaseMilestone(projectId, milestoneId);
+    if (result.success) {
+      const persist = saveDemoProject(result.data);
+      setDemoProjects(loadAllDemoProjects());
+      if (!persist.ok) {
+        persistErrorRef.current = persist.error;
+        setLastPersistError(persist.error);
+      } else {
+        persistErrorRef.current = null;
+        setLastPersistError(null);
+      }
+    }
+    return result;
+  }, [gateway]);
+
   const resetDemoProjects = useCallback(() => {
     clearDemoProjects();
     setGateway(new DemoEscrowGateway());
@@ -65,10 +141,14 @@ export function EscrowGatewayProvider({ children }: { children: ReactNode }) {
     gateway,
     demoProjects,
     createDemoEscrow,
+    fundMilestone,
+    submitMilestone,
+    approveMilestone,
+    releaseMilestone,
     resetDemoProjects,
     lastPersistError,
     clearPersistError,
-  }), [gateway, demoProjects, createDemoEscrow, resetDemoProjects, lastPersistError, clearPersistError]);
+  }), [gateway, demoProjects, createDemoEscrow, fundMilestone, submitMilestone, approveMilestone, releaseMilestone, resetDemoProjects, lastPersistError, clearPersistError]);
 
   return (
     <DemoEscrowContext.Provider value={value}>{children}</DemoEscrowContext.Provider>
