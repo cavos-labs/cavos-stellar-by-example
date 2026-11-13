@@ -13,6 +13,7 @@ starting point for your own product.
 | App | What it shows | Status |
 | --- | --- | --- |
 | [`trustless-escrow-freelance-app`](./trustless-escrow-freelance-app) | **Trustless Escrow Freelance App** — open-source mock-up of a freelance marketplace with a full Cavos onboarding path and a full [Trustless Work](https://www.trustlesswork.com/) milestone-escrow path on Stellar. Reference use case for builders. | Mock-up (landing + static UI) |
+| [`stellar-wallet-starter`](./stellar-wallet-starter) | **Stellar Wallet Starter**: a minimal Next.js app with Google, Apple or email sign-in, a sponsored Stellar account, XLM and USDC balances, a sponsored trustline, XLM payments and recent payments. | Working example (testnet) |
 
 More apps will land here over time. Want to add one? See
 [CONTRIBUTING.md](./CONTRIBUTING.md).
